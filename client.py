@@ -15,10 +15,10 @@ HEADERS_BASE = {'user-agent':USER_AGENT}
 #class RequestsLimiter
 
 def run():
-    r = requests.get(URL_BASE + 'posts.json?limit=10', headers=HEADERS_BASE)
-    jso = r.json()
-    #jso = json.load(open('toy.txt'))
+    #r = requests.get(URL_BASE + 'posts.json?limit=10', headers=HEADERS_BASE)
+    #jso = r.json()
     #json.dump(jso, open('toy.txt', 'w'))
+    jso = json.load(open('toy.txt'))
     
     post_listing = jso
     posts = post_listing['posts']
