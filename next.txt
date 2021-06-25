@@ -1,4 +1,16 @@
+####################################### DONE
 set up git
+
+####################################### NEXT
 make the client lol
+    >>super basic client
+    lazy image search
+    display the image (tkinter?)
+    keyboard shortcuts
+        arrow keys for navigation (alt right + alt left)
+    view multiple images at once? Dunno why I want this
 rest of the fucking owl
+    submit image change through api (PATCH, I think?)
+    make image change things editable through GUI? Or just use config file
+        something about different keyboard shortcuts
 
