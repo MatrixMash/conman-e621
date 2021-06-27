@@ -6,6 +6,7 @@ import requests
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 personal_path = os.path.join(script_dir, 'personal.txt')
+cache_dir = os.path.join(script_dir, 'image_cache')
 
 username = 'matrixmash10'
 with open(personal_path) as personal_file:
@@ -16,9 +17,17 @@ USER_AGENT = "ConMan/1.2 (e621 tagging interface by MatrixMash)"
 HEADERS_BASE = {'user-agent':USER_AGENT}
 
 class ResourceManager:
+    def __init__(self):
+        self.cache_table = {511799:'511799.png'} # Downloaded from https://e621.net/posts/511799
+    def get_image(self, image_id):
+        if image_id in self.cache_table:
+            cached_path = os.path.join(cache_dir, self.cache_table[url])
+            return open(cached_path, 'b').read()
+        return NotImplemented
     def get_url(self, url, **kwargs):
         time.sleep(1) # Rate limiting lol
         return requests.get(url, **kwargs, headers=HEADERS_BASE)
+        
 
 resource_manager = ResourceManager()
 
