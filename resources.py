@@ -5,8 +5,8 @@ import re
 
 import requests
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 personal_path = os.path.join(script_dir, 'personal.txt')

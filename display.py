@@ -4,7 +4,7 @@ import tkinter
 from PIL import Image, ImageTk
 
 from resources import resource_manager
-#from config import shared
+from config import shortcut_callbacks
 
 dummy_post = {'id':511799,
  'file':
@@ -18,7 +18,18 @@ class Conman(tkinter.Frame):
         master.title('conman: an e621 tag editor')
         self.pack()
         self.create_widgets()
-        self.set_shortcuts()
+        self.current_post = None
+        
+        self.user_shortcuts = {
+            'Return':'say_enter',
+            'n':'say_n',
+            'N':'say_N',
+            'Control_L':'say_left_control',
+            'h':'say_help',
+            'l':'do_load',
+        }
+        self.master.bind('<KeyPress>', self.do_keypress)
+        
     def set_post(self, post):
         self.current_post = post
         image = Image.open(BytesIO(resource_manager.get_image(post)))
@@ -27,13 +38,14 @@ class Conman(tkinter.Frame):
         self.main_label.image = photo_image # So tk doesn't forget the image on us
         self.main_label.pack()
     def create_widgets(self):
-        self.main_label = tkinter.Label(self, text='No image here. Press any key to load one.')
+        self.main_label = tkinter.Label(self, text='No image here. Press h to print help.')
         self.main_label.pack()
-    def set_shortcuts(self):
-        self.master.bind('<KeyPress>', self.do_keypress)
+    
     def do_keypress(self, key_event):
-        print('ahoihoi')
-        self.set_post(dummy_post)
+        if key_event.keysym in self.user_shortcuts:
+            function_name = self.user_shortcuts[key_event.keysym]
+            f = getattr(shortcut_callbacks, function_name)
+            f(self, self.current_post, key_event)
 
 def run():
     root = tkinter.Tk()
