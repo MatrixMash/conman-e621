@@ -17,29 +17,23 @@ class Conman(tkinter.Frame):
         self.master = master
         master.title('conman: an e621 tag editor')
         self.pack()
-#        self['width'] = 200
-#        self['height'] = 200
         self.create_widgets()
-#        self.set_shortcuts()
-    def create_widgets(self):
-        data = resource_manager.get_image(dummy_post)
-        image = Image.open(BytesIO(data))
+        self.set_shortcuts()
+    def set_post(self, post):
+        self.current_post = post
+        image = Image.open(BytesIO(resource_manager.get_image(post)))
         photo_image = ImageTk.PhotoImage(image)
-        l = tkinter.Label(self, image=photo_image)
-        l.image = photo_image   # So tk doesn't forget the image on us
-        l.pack()
-#    def set_shortcuts(self):
-#        self.master.bind('n', shared.say_hi)
-        #self.minsize((500, 500))
-
-#def show_data(data):
-#    stream = BytesIO(data)
-#    image = Image.open(stream)
-#    image.show()
-
-#def show_post(post):
-#    data = resource_manager.get_image(post)
-#    show_data(data)
+        self.main_label['image'] = photo_image
+        self.main_label.image = photo_image # So tk doesn't forget the image on us
+        self.main_label.pack()
+    def create_widgets(self):
+        self.main_label = tkinter.Label(self, text='No image here. Press any key to load one.')
+        self.main_label.pack()
+    def set_shortcuts(self):
+        self.master.bind('<KeyPress>', self.do_keypress)
+    def do_keypress(self, key_event):
+        print('ahoihoi')
+        self.set_post(dummy_post)
 
 def run():
     root = tkinter.Tk()
