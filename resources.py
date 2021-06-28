@@ -27,32 +27,40 @@ class ResourceManager:
     def get_url(self, url, **kwargs):
         time.sleep(1) # Rate limiting lol
         return requests.get(url, **kwargs, headers=HEADERS_BASE)
+    def get_search(self, search_string, limit=None):
+        return LazySearch(search_string, limit)
 
 resource_manager = ResourceManager()
 
 class LazySearch:
-    def __init__(self, search_string):
+    def __init__(self, search_string, limit=None):
         self.search_string = search_string
         self.cache_limit = 6
+        self.total_limit = limit
+        if limit is not None and limit < self.cache_limit:
+            self.cache_limit = limit
         self.before_id = None
         self.cache = []
-        self.load()
-    def load(self):
+    def load_next(self):
+        if len(self.cache) > 0:
+            self.before_id = self.cache['posts'][-1]['id']
         params = {'limit':self.cache_limit, 'tags':self.search_string}
         if self.before_id is not None:
             params['page'] = 'b' + str(self.before_id)
         self.cache = resource_manager.get_url(URL_BASE + 'posts.json', params=params).json()
     def posts(self):
-        for _ in range(3):
-        #while True:
+        posts_to_serve = self.total_limit
+        while posts_to_serve is None or posts_to_serve > 0:
+            self.load_next()
             yield from self.cache['posts']
-            if len(self.cache['posts']) != self.cache_limit:
+            posts_to_serve -= len(self.cache['posts'])
+            if len(self.cache['posts']) != self.cache_limit: # No more posts on e621
                 break
-            self.before_id = self.cache['posts'][-1]['id']
-            self.load()
+            if posts_to_serve < self.cache_limit and posts_to_serve > 0:
+                self.cache_limit = posts_to_serve
 
 def run():
-    search = LazySearch('duo')
+    search = LazySearch('duo', 19)
     
     for p in search.posts():
         file_metadata = p['file']
