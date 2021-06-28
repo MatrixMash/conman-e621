@@ -1,8 +1,12 @@
 import os, sys
 import json
 import time
+import re
 
 import requests
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 personal_path = os.path.join(script_dir, 'personal.txt')
@@ -16,18 +20,39 @@ URL_BASE = 'https://e621.net/'
 USER_AGENT = "ConMan/1.2 (e621 tagging interface by MatrixMash)"
 HEADERS_BASE = {'user-agent':USER_AGENT}
 
+file_extensions = r'\.(?:jpg|png|gif)'
+is_cached_image_name = re.compile(r'(\d+)({})'.format(file_extensions))
 class ResourceManager:
     def __init__(self):
-        self.cache_table = {511799:'511799.png'} # Downloaded from https://e621.net/posts/511799
-    def get_image(self, post):
-        image_id = post['id']
-        if image_id in self.cache_table:
-            cached_path = os.path.join(cache_dir, self.cache_table[image_id])
-            return open(cached_path, 'rb').read()
-        return self.get_url(post['file']['url']).content
+        self.cache_table = {}
+        for root, dirs, files in os.walk(cache_dir):
+            for file_name in files:
+                m = is_cached_image_name.match(file_name)
+                if m is None:
+                    continue
+                name, extension = m.groups()
+                self.cache_table[int(name)] = file_name
     def get_url(self, url, **kwargs):
         time.sleep(1) # Rate limiting lol
         return requests.get(url, **kwargs, headers=HEADERS_BASE)
+
+    def cache_image(self, post):
+        image_id = post['id']; url = post['file']['url']
+        _, extension = os.path.splitext(url)
+        cached_filename = str(image_id) + extension
+        cached_path = os.path.join(cache_dir, cached_filename)
+        with open(cached_path, 'wb') as cache_file:
+            data = self.get_url(url).content
+            cache_file.write(data)
+        self.cache_table[image_id] = cached_filename
+
+    def get_image(self, post):
+        image_id = post['id']
+        if not image_id in self.cache_table:
+            self.cache_image(post)
+        cached_path = os.path.join(cache_dir, self.cache_table[image_id])
+        return open(cached_path, 'rb').read()
+
     def get_search(self, search_string, limit=None):
         return LazySearch(search_string, limit)
 
