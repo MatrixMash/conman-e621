@@ -59,6 +59,8 @@ class LazySearch:
                 break
             if posts_to_serve < self.cache_limit and posts_to_serve > 0:
                 self.cache_limit = posts_to_serve
+    def __iter__(self):
+        return iter(self.posts())
 
 def run():
     search = LazySearch('duo', 19)
