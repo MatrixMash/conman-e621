@@ -20,8 +20,8 @@ URL_BASE = 'https://e621.net/'
 USER_AGENT = "ConMan/1.2 (e621 tagging interface by MatrixMash)"
 HEADERS_BASE = {'user-agent':USER_AGENT}
 
-file_extensions = r'\.(?:jpg|png|gif)'
-is_cached_image_name = re.compile(r'(\d+)({})'.format(file_extensions))
+image_file_extensions = r'\.(?:jpg|png|gif)'
+is_cached_image_name = re.compile(r'(\d+)({})'.format(image_file_extensions))
 class ResourceManager:
     def __init__(self):
         self.cache_table = {}
