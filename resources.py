@@ -19,11 +19,12 @@ HEADERS_BASE = {'user-agent':USER_AGENT}
 class ResourceManager:
     def __init__(self):
         self.cache_table = {511799:'511799.png'} # Downloaded from https://e621.net/posts/511799
-    def get_image(self, image_id):
+    def get_image(self, post):
+        image_id = post['id']
         if image_id in self.cache_table:
             cached_path = os.path.join(cache_dir, self.cache_table[image_id])
             return open(cached_path, 'rb').read()
-        return NotImplemented
+        return self.get_url(post['file']['url']).content
     def get_url(self, url, **kwargs):
         time.sleep(1) # Rate limiting lol
         return requests.get(url, **kwargs, headers=HEADERS_BASE)
