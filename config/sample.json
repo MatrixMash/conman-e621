@@ -5,7 +5,7 @@
     "comment": "search is the search. Don't use id:<=x; put x in the id_less_than field.",
     "search" : "ears_up rating:s feral -text duo",
 
-    "comment": "key_bindings take the form 'keysym': 'name_of_function_in_shortcut_callbacks.py',",
+    "comment": "key_bindings take the form 'keysym': 'name_of_function_in_shortcut_callbacks.py', See sample2.json and shortcut_callbacks.py for functions that actually change the images.",
     "key_bindings":{
         "Left": "do_arrow_key",
         "Right": "do_arrow_key",

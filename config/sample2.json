@@ -1,0 +1,10 @@
+{
+    "search" : "-solo -duo -group -none_pictured",
+
+    "comment": "key_bindings take the form 'keysym': 'name_of_function_in_shortcut_callbacks.py', See sample2.json and shortcut_callbacks.py for functions that actually change the images.",
+    "key_bindings":{
+        "Left": "do_arrow_key",
+        "Right": "do_arrow_key",
+        "Escape": "do_quit"
+    }
+}
