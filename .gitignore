@@ -1,5 +1,6 @@
 __pycache__
 personal.txt
+config/credentials.txt
 toy.*
 next.txt
 image_cache/

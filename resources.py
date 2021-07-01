@@ -9,12 +9,13 @@ import requests
 #logging.basicConfig(level=logging.DEBUG)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-personal_path = os.path.join(script_dir, 'personal.txt')
+credentials_path = os.path.join(config_dir, 'config', 'credentials.txt')
 cache_dir = os.path.join(script_dir, 'image_cache')
 
-username = 'matrixmash10'
-with open(personal_path) as personal_file:
-    api_key = personal_file.read().splitlines()[0].strip()
+with open(credentials_path) as credentials_file:
+    lines = credentials_file.read().splitlines()
+    username = lines[0].strip()
+    api_key = lines[1].strip()
 
 URL_BASE = 'https://e621.net/'
 USER_AGENT = "ConMan/1.2 (e621 tagging interface by MatrixMash)"
