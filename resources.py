@@ -2,6 +2,7 @@ import os, sys
 import json
 import time
 import re
+import math
 
 import requests
 
@@ -9,7 +10,7 @@ import requests
 #logging.basicConfig(level=logging.DEBUG)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-credentials_path = os.path.join(config_dir, 'config', 'credentials.txt')
+credentials_path = os.path.join(script_dir, 'config', 'credentials.txt')
 cache_dir = os.path.join(script_dir, 'image_cache')
 
 with open(credentials_path) as credentials_file:
@@ -54,6 +55,8 @@ class ResourceManager:
         cached_path = os.path.join(cache_dir, self.cache_table[image_id])
         return open(cached_path, 'rb').read()
 
+    def get_indexed_search(self, search_string, limit=None):
+        return IndexedSearch(search_string, limit)
     def get_search(self, search_string, limit=None):
         return LazySearch(search_string, limit)
 
@@ -62,8 +65,8 @@ resource_manager = ResourceManager()
 class LazySearch:
     def __init__(self, search_string, limit=None):
         self.search_string = search_string
-        self.cache_limit = 6
-        self.total_limit = limit
+        self.cache_limit = 75   # Doesn't really matter
+        self.posts_to_serve = limit if limit is not None else math.inf
         if limit is not None and limit < self.cache_limit:
             self.cache_limit = limit
         self.before_id = None
@@ -76,17 +79,32 @@ class LazySearch:
             params['page'] = 'b' + str(self.before_id)
         self.cache = resource_manager.get_url(URL_BASE + 'posts.json', params=params).json()
     def posts(self):
-        posts_to_serve = self.total_limit
-        while posts_to_serve is None or posts_to_serve > 0:
+        while self.posts_to_serve > 0:
             self.load_next()
             yield from self.cache['posts']
-            posts_to_serve -= len(self.cache['posts'])
-            if len(self.cache['posts']) != self.cache_limit: # No more posts on e621
+            self.posts_to_serve -= len(self.cache['posts'])
+            if len(self.cache['posts']) != self.cache_limit: # Search has ended already
                 break
-            if posts_to_serve < self.cache_limit and posts_to_serve > 0:
-                self.cache_limit = posts_to_serve
     def __iter__(self):
         return iter(self.posts())
+
+class IndexedSearch:
+    def __init__(self, search_string, limit=None):
+        self.search_iterator = iter(LazySearch(search_string, limit))
+        self.cache = []
+    def __contains__(self, index):
+        try:
+            self.get(index)
+            return True
+        except ValueError:
+            return False
+    def __getitem__(self, index):
+        try:
+            while index >= len(self.cache):
+                self.cache.append(next(self.search_iterator))
+        except StopIteration:
+            raise ValueError('Search ended at {} posts. Index {} out of range.'.format(len(self.cache), index))
+        return self.cache[index]
 
 def run():
     search = LazySearch('duo', 19)
