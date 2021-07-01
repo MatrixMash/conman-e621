@@ -1,0 +1,14 @@
+{
+    "comment": "default_text is what shows up when the search has no images left. Optional.",
+    "default_text" : "No image here.\nLooks like you finished your project!\nCONGLATURATION !!!",
+
+    "comment": "search is the search. Don't use id:<=x; put x in the id_less_than field.",
+    "search" : "ears_up rating:s feral -text duo",
+
+    "comment": "key_bindings take the form 'keysym': 'name_of_function_in_shortcut_callbacks.py',",
+    "key_bindings":{
+        "Left": "do_arrow_key",
+        "Right": "do_arrow_key",
+        "Escape": "do_quit"
+    }
+}

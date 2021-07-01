@@ -8,7 +8,7 @@ example_keysyms = {
          'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
          'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
     'y', 'z'},
-    'keys_with_strange_names' : {'Return': '\n', 'Tab': '\t', 'ampersand': '&',
+    'keys_with_other_names' : {'Return': 'Enter', 'Tab': '\t', 'ampersand': '&',
      'apostrophe': "'", 'asciicircum': '^', 'asciitilde': '~', 'asterisk': '*',
      'at': '@', 'backslash': '\\', 'bar': '|', 'braceleft': '{', 'braceright': '}',
      'bracketleft': '[', 'bracketright': ']', 'colon': ':', 'comma': ',',
@@ -29,12 +29,6 @@ dummy_post = {'id':511799,
 }
 
 
-def arrow_key(editor, post, key_event):
-    if key_event.keysym == 'Right':
-        editor.next()
-    elif key_event.keysym == 'Left':
-        editor.previous()
-
 def say_keysym(editor, post, key_event):
     print(key_event.keysym)
 
@@ -43,7 +37,7 @@ def say_n(editor, post, key_event): print('You just pressed n!')
 def say_N(editor, post, key_event): print('You just pressed N!')
 def say_left_control(editor, post, key_event): print('You just pressed the left control key!')
 
-def say_help(editor, post, key_event):
+def say_dummy_message(editor, post, key_event):
     print('Press any of the following keys to test the print function:')
     print('[n, N, enter, left control]')
     print('Press the l key to load an image!')
@@ -51,6 +45,17 @@ def say_help(editor, post, key_event):
 
 def do_quit(editor, post, key_event):
     editor.quit()
-def do_test_load(editor, post, key_event):
+def do_dummy_load(editor, post, key_event):
     editor.set_post(dummy_post)
+
+def do_arrow_key(editor, post, key_event):
+    if key_event.keysym == 'Right':
+        #print('Right arrow key')
+        editor.next()
+    elif key_event.keysym == 'Left':
+        #print('Left arrow key')
+        editor.previous()
+    else:
+        print('Unknown arrow key:', key_event)
+
 

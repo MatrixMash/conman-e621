@@ -10,7 +10,8 @@ import requests
 #logging.basicConfig(level=logging.DEBUG)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-credentials_path = os.path.join(script_dir, 'config', 'credentials.txt')
+config_dir = os.path.join(script_dir, 'config')
+credentials_path = os.path.join(config_dir, 'credentials.txt')
 cache_dir = os.path.join(script_dir, 'image_cache')
 
 with open(credentials_path) as credentials_file:
@@ -21,6 +22,25 @@ with open(credentials_path) as credentials_file:
 URL_BASE = 'https://e621.net/'
 USER_AGENT = "ConMan/1.2 (e621 tagging interface by MatrixMash)"
 HEADERS_BASE = {'user-agent':USER_AGENT}
+
+dummy_project = {
+    'key_bindings' : {
+        'Return':'say_enter',
+            'n':'say_n',
+            'N':'say_N',
+            'Control_L':'say_left_control',
+            'h':'say_dummy_message',
+            'l':'do_dummy_load',
+            'Escape': 'do_quit',
+    },
+    'search':'asdfasdfasdfew',
+    'default_text' : 'No image here. Press h to print test message.',
+}
+
+dummy_post = {'id':511799,
+ 'file':
+    {'url':'https://static1.e621.net/data/0d/36/0d3696a0ea38de0df42536f48807b464.png'}
+}
 
 image_file_extensions = r'\.(?:jpg|png|gif)'
 is_cached_image_name = re.compile(r'(\d+)({})'.format(image_file_extensions))
@@ -34,6 +54,15 @@ class ResourceManager:
                     continue
                 name, extension = m.groups()
                 self.cache_table[int(name)] = file_name
+        self.projects = {}
+        for root, dirs, files in os.walk(config_dir):
+            for file_name in files:
+                name, extension = os.path.splitext(file_name)
+                if extension == '.json':
+                    path = os.path.join(root, file_name)
+                    with open(path) as project_file:
+                        project = json.load(project_file)
+                    self.projects[name] = project
     def get_url(self, url, **kwargs):
         time.sleep(1) # Rate limiting lol
         return requests.get(url, **kwargs, headers=HEADERS_BASE)
@@ -59,6 +88,9 @@ class ResourceManager:
         return IndexedSearch(search_string, limit)
     def get_search(self, search_string, limit=None):
         return LazySearch(search_string, limit)
+    
+    def get_project(self, name): return self.projects[name]
+    def get_dummy_project(self): return dummy_project
 
 resource_manager = ResourceManager()
 
@@ -93,8 +125,10 @@ class IndexedSearch:
         self.search_iterator = iter(LazySearch(search_string, limit))
         self.cache = []
     def __contains__(self, index):
+        if index < 0:
+            return False
         try:
-            self.get(index)
+            self[index]
             return True
         except ValueError:
             return False
@@ -104,6 +138,8 @@ class IndexedSearch:
                 self.cache.append(next(self.search_iterator))
         except StopIteration:
             raise ValueError('Search ended at {} posts. Index {} out of range.'.format(len(self.cache), index))
+        if index < 0:
+            raise ValueError('Index into search must be zero or more.')
         return self.cache[index]
 
 def run():
