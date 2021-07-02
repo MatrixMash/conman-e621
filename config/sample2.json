@@ -1,5 +1,5 @@
 {
-    "search" : "-solo -duo -group -none_pictured",
+    "search" : "-solo -duo -group -none_pictured -set:trickytagscharactercount order:id_asc",
 
     "comment": "key_bindings take the form 'keysym': 'name_of_function_in_shortcut_callbacks.py', See sample2.json and shortcut_callbacks.py for functions that actually change the images.",
     "key_bindings":{

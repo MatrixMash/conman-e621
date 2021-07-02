@@ -1,7 +1,7 @@
 from io import BytesIO
 import tkinter
 
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, UnidentifiedImageError
 
 from resources import resource_manager
 from config import shortcut_callbacks
@@ -15,12 +15,28 @@ class PostDisplay(tkinter.Frame):
         self.default_text = default_text
         self.create_widgets()
         self.current_post = None
+        
+        self.max_size = (2000, 1000)
+        self.view = 'file_shrink'
+    
     def set_post(self, post):
         if post is None:
             self.main_label['image'] = ''
             return
         self.current_post = post
-        image = Image.open(BytesIO(resource_manager.get_image(post)))
+        if self.view in ['file', 'preview', 'sample']:
+            image_bytes = resource_manager.get_image_data(post, self.view)
+        else:
+            image_bytes = resource_manager.get_image_data(post)
+        try:
+            image = Image.open(BytesIO(image_bytes))
+        except UnidentifiedImageError as uie:
+            self.main_label['image'] = ''
+            print(uie)
+            print('from url', post['file']['url'])
+            return
+        if self.view == 'file_shrink':
+            image.thumbnail(self.max_size)
         photo_image = ImageTk.PhotoImage(image)
         self.main_label['image'] = photo_image
         self.main_label.image = photo_image # So tk doesn't forget the image on us
@@ -38,10 +54,12 @@ class PostEditor:
         
         self.current_index = None
         self.search = None
-    def set_project(self, project):
+    def set_project(self, project_name):
+        project = resource_manager.get_project(project_name)
         self.project = project
         self.set_search(project['search'])
-        self.post_display.set_default_text(project['default_text'])
+        if 'default_text' in project:
+            self.post_display.set_default_text(project['default_text'])
     def set_search(self, search_string):
         self.search = resource_manager.get_indexed_search(search_string)
         self.go_to(0)
@@ -77,7 +95,7 @@ class PostEditor:
 def run():
     root = tkinter.Tk()
     editor = PostEditor(root)
-    editor.set_project(resource_manager.get_project('sample'))
+    editor.set_project('sample2')
     root.mainloop()
     
 if __name__ == '__main__':

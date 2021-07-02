@@ -20,8 +20,8 @@ with open(credentials_path) as credentials_file:
     api_key = lines[1].strip()
 
 URL_BASE = 'https://e621.net/'
-USER_AGENT = "ConMan/1.2 (e621 tagging interface by MatrixMash)"
-HEADERS_BASE = {'user-agent':USER_AGENT}
+HEADERS_BASE = {'user-agent':'ConMan/1.2 (e621 tagging interface by MatrixMash)'}
+PARAMETERS_BASE = {}
 
 dummy_project = {
     'key_bindings' : {
@@ -42,8 +42,11 @@ dummy_post = {'id':511799,
     {'url':'https://static1.e621.net/data/0d/36/0d3696a0ea38de0df42536f48807b464.png'}
 }
 
-image_file_extensions = r'\.(?:jpg|png|gif)'
-is_cached_image_name = re.compile(r'(\d+)({})'.format(image_file_extensions))
+digits = r'\d+'
+size = '(?:file|preview|sample)'
+image_name = '(' + digits + '-' + size + ')'
+image_extension = '(' + r'\.' + '(?:jpg|png|gif|webm)' + ')'
+is_cached_image_name = re.compile(image_name + image_extension)
 class ResourceManager:
     def __init__(self):
         self.cache_table = {}
@@ -53,7 +56,7 @@ class ResourceManager:
                 if m is None:
                     continue
                 name, extension = m.groups()
-                self.cache_table[int(name)] = file_name
+                self.cache_table[name] = file_name
         self.projects = {}
         for root, dirs, files in os.walk(config_dir):
             for file_name in files:
@@ -63,24 +66,36 @@ class ResourceManager:
                     with open(path) as project_file:
                         project = json.load(project_file)
                     self.projects[name] = project
-    def get_url(self, url, **kwargs):
+        self.session = requests.Session()
+        self.session.auth = (username, api_key)
+    def get_url(self, url, headers={}, params={}, **kwargs):
         time.sleep(1) # Rate limiting lol
-        return requests.get(url, **kwargs, headers=HEADERS_BASE)
+        params = {**PARAMETERS_BASE, **params}
+        headers = {**HEADERS_BASE, **headers}
+        result = self.session.get(url, headers=headers, params=params, **kwargs)
+        if result.status_code == 401:
+            print('Authentication failure on url', url)
+            print('Is your username and api key in config/credentials.txt on separate lines? Do you need to regenerate your api key?')
+        return result
 
-    def cache_image(self, post):
-        image_id = post['id']; url = post['file']['url']
+    def cache_image(self, post, size='file'):
+        image_id = post['id']; url = post[size]['url']
         _, extension = os.path.splitext(url)
-        cached_filename = str(image_id) + extension
+        image_name = str(image_id) + '-' + size
+        cached_filename = image_name + extension
         cached_path = os.path.join(cache_dir, cached_filename)
+        if os.path.isfile(cached_path):
+            print(cached_path)
+            raise Exception('Redownloading a cached file. What have I done wrong now?')
         with open(cached_path, 'wb') as cache_file:
             data = self.get_url(url).content
             cache_file.write(data)
-        self.cache_table[image_id] = cached_filename
+        self.cache_table[image_name] = cached_filename
 
-    def get_image(self, post):
-        image_id = post['id']
+    def get_image_data(self, post, size='file'):
+        image_id = str(post['id']) + '-' + size
         if not image_id in self.cache_table:
-            self.cache_image(post)
+            self.cache_image(post, size)
         cached_path = os.path.join(cache_dir, self.cache_table[image_id])
         return open(cached_path, 'rb').read()
 
@@ -109,14 +124,21 @@ class LazySearch:
         params = {'limit':self.cache_limit, 'tags':self.search_string}
         if self.before_id is not None:
             params['page'] = 'b' + str(self.before_id)
-        self.cache = resource_manager.get_url(URL_BASE + 'posts.json', params=params).json()
+        result = resource_manager.get_url(URL_BASE + 'posts.json', params=params)
+        try:
+            self.cache = result.json()['posts']
+        except KeyError as k:
+            print('Search failure on {}.'.format(self.search_string))
+            self.cache = []
     def posts(self):
         while self.posts_to_serve > 0:
             self.load_next()
-            yield from self.cache['posts']
-            self.posts_to_serve -= len(self.cache['posts'])
-            if len(self.cache['posts']) != self.cache_limit: # Search has ended already
+            yield from self.cache
+            self.posts_to_serve -= len(self.cache)
+            if len(self.cache) != self.cache_limit: # Search has ended already
                 break
+            if self.posts_to_serve < self.cache_limit:  # Avoid yielding more posts than self.posts_to_serve
+                self.cache_limit = self.posts_to_serve
     def __iter__(self):
         return iter(self.posts())
 
