@@ -57,7 +57,7 @@ class ResourceManager:
                     continue
                 name, extension = m.groups()
                 self.cache_table[name] = file_name
-        self.projects = {}
+        self.projects = {'dummy':dummy_project}
         for root, dirs, files in os.walk(config_dir):
             for file_name in files:
                 name, extension = os.path.splitext(file_name)
@@ -105,7 +105,6 @@ class ResourceManager:
         return LazySearch(search_string, limit)
     
     def get_project(self, name): return self.projects[name]
-    def get_dummy_project(self): return dummy_project
 
 resource_manager = ResourceManager()
 
