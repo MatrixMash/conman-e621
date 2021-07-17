@@ -4,7 +4,6 @@ import tkinter
 from PIL import Image, ImageTk, UnidentifiedImageError
 
 from resources import resource_manager
-from config import shortcut_callbacks
 
 class PostDisplay(tkinter.Frame):
     def __init__(self, master, default_text='Nobody here but us chickens.'):
@@ -52,14 +51,18 @@ class PostEditor:
         self.master = master
         self.master.bind('<KeyPress>', self.do_keypress)
         
+        self.project = None
         self.current_index = None
         self.search = None
     def set_project(self, project_name):
-        project = resource_manager.get_project(project_name)
+        project = resource_manager.set_project(project_name)
         self.project = project
-        self.set_search(project['search'])
-        if 'default_text' in project:
-            self.post_display.set_default_text(project['default_text'])
+        if hasattr(project, 'search'):
+            self.set_search(project.search)
+        else:
+            print('This project has no search field???')
+        if hasattr(project, 'default_text'):
+            self.post_display.set_default_text(project.default_text)
     def set_search(self, search_string):
         self.search = resource_manager.get_indexed_search(search_string)
         self.go_to(0)
@@ -86,16 +89,16 @@ class PostEditor:
     def set_post(self, post):
         self.post_display.set_post(post)
     def do_keypress(self, key_event):
-        bindings = self.project['key_bindings']
-        if key_event.keysym in bindings:
-            function_name = bindings[key_event.keysym]
-            f = getattr(shortcut_callbacks, function_name)
-            f(self, self.post_display.current_post, key_event)
+        if not self.project is None:
+            self.project.on_key(self, key_event)
 
 def run():
     root = tkinter.Tk()
     editor = PostEditor(root)
-    editor.set_project('sample2')
+    print('Project options:', '\n'.join(resource_manager.projects.keys()))
+    project_name = input('Name of project? ')
+    print()
+    editor.set_project(project_name)
     root.mainloop()
     
 if __name__ == '__main__':

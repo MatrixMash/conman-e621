@@ -6,6 +6,7 @@ next.txt
 image_cache/
 projects/*.py
 !projects/sample.py
-!projects/sample2.py
+!projects/sample_2.py
+!projects/sample_3.py
 test_*
 

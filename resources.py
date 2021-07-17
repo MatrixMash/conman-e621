@@ -1,8 +1,7 @@
 import os, sys
-import json
 import time
-import re
-import math
+import re, math
+import importlib
 
 import requests
 
@@ -10,32 +9,12 @@ import requests
 #logging.basicConfig(level=logging.DEBUG)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-config_dir = os.path.join(script_dir, 'config')
-credentials_path = os.path.join(config_dir, 'credentials.txt')
+projects_dir = os.path.join(script_dir, 'projects')
 cache_dir = os.path.join(script_dir, 'image_cache')
-
-with open(credentials_path) as credentials_file:
-    lines = credentials_file.read().splitlines()
-    username = lines[0].strip()
-    api_key = lines[1].strip()
 
 URL_BASE = 'https://e621.net/'
 HEADERS_BASE = {'user-agent':'ConMan/1.2 (e621 tagging interface by MatrixMash)'}
 PARAMETERS_BASE = {}
-
-dummy_project = {
-    'key_bindings' : {
-        'Return':'say_enter',
-            'n':'say_n',
-            'N':'say_N',
-            'Control_L':'say_left_control',
-            'h':'say_dummy_message',
-            'l':'do_dummy_load',
-            'Escape': 'do_quit',
-    },
-    'search':'asdfasdfasdfew',
-    'default_text' : 'No image here. Press h to print test message.',
-}
 
 dummy_post = {'id':511799,
  'file':
@@ -47,7 +26,7 @@ size = '(?:file|preview|sample)'
 image_name = '(' + digits + '-' + size + ')'
 image_extension = '(' + r'\.' + '(?:jpg|png|gif|webm)' + ')'
 is_cached_image_name = re.compile(image_name + image_extension)
-class ResourceManager:
+class ResourceManager: # Singleton, get instance via resources.resource_manager
     def __init__(self):
         self.cache_table = {}
         for root, dirs, files in os.walk(cache_dir):
@@ -57,17 +36,13 @@ class ResourceManager:
                     continue
                 name, extension = m.groups()
                 self.cache_table[name] = file_name
-        self.projects = {'dummy':dummy_project}
-        for root, dirs, files in os.walk(config_dir):
-            for file_name in files:
-                name, extension = os.path.splitext(file_name)
-                if extension == '.json':
-                    path = os.path.join(root, file_name)
-                    with open(path) as project_file:
-                        project = json.load(project_file)
-                    self.projects[name] = project
+        self.projects = {}
+        for project_file_name in os.listdir(projects_dir):
+            name, extension = os.path.splitext(project_file_name)
+            if extension != '.py':
+                continue
+            self.projects[name] = importlib.import_module('projects.{}'.format(name))
         self.session = requests.Session()
-        self.session.auth = (username, api_key)
     def get_url(self, url, headers={}, params={}, **kwargs):
         time.sleep(1) # Rate limiting lol
         params = {**PARAMETERS_BASE, **params}
@@ -75,8 +50,18 @@ class ResourceManager:
         result = self.session.get(url, headers=headers, params=params, **kwargs)
         if result.status_code == 401:
             print('Authentication failure on url', url)
-            print('Is your username and api key in config/credentials.txt on separate lines? Do you need to regenerate your api key?')
+            print('  Is your username really {}?'.format(self.session.auth[0]))
+            print('  Are your username and API key assigned to auth in the project?')
+            print('  Did you regenerate your API key recently?')
         return result
+    
+    def set_project(self, name):
+        self.current_project = self.projects[name]
+        if hasattr(self.current_project, 'auth'):
+            self.session.auth = self.current_project.auth
+        else:
+            print('This project has no auth field???')
+        return self.current_project
 
     def cache_image(self, post, size='file'):
         image_id = post['id']; url = post[size]['url']
@@ -103,8 +88,6 @@ class ResourceManager:
         return IndexedSearch(search_string, limit)
     def get_search(self, search_string, limit=None):
         return LazySearch(search_string, limit)
-    
-    def get_project(self, name): return self.projects[name]
 
 resource_manager = ResourceManager()
 
@@ -124,6 +107,9 @@ class LazySearch:
         if self.before_id is not None:
             params['page'] = 'b' + str(self.before_id)
         result = resource_manager.get_url(URL_BASE + 'posts.json', params=params)
+        if result.status_code == 401:
+            self.cache = []
+            return
         try:
             self.cache = result.json()['posts']
         except KeyError as k:
