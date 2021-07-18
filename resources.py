@@ -24,7 +24,7 @@ dummy_post = {'id':511799,
 digits = r'\d+'
 size = '(?:file|preview|sample)'
 image_name = '(' + digits + '-' + size + ')'
-image_extension = '(' + r'\.' + '(?:jpg|png|gif|webm)' + ')'
+image_extension = '(' + r'\.' + '(?:jpg|png|gif|webm|swf)' + ')'
 is_cached_image_name = re.compile(image_name + image_extension)
 class ResourceManager: # Singleton, get instance via resources.resource_manager
     def __init__(self):

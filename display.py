@@ -1,4 +1,5 @@
 from io import BytesIO
+import itertools
 import tkinter
 
 from PIL import Image, ImageTk, UnidentifiedImageError
@@ -45,16 +46,49 @@ class PostDisplay(tkinter.Frame):
         self.main_label = tkinter.Label(self, text=self.default_text)
         self.main_label.pack()
 
+def tag_lists(post):
+    tag_list_names = ["general", "species", "character", "copyright", "artist", "invalid", "lore", "meta"]
+    return [post['tags'][name] for name in tag_list_names] + [post['locked_tags']]
+def is_locked(post, tag): return tag in post['locked_tags']
+def tags_of_post(post):
+    return itertools.chain(tag_lists(post))
+def post_has_tag(post, tag): return tag in tags_of_post(post)
+
 class PostEditor:
     def __init__(self, master):
         self.post_display = PostDisplay(master)
         self.master = master
         self.master.bind('<KeyPress>', self.do_keypress)
         
+        self.changes = None
+        
         self.project = None
         self.current_index = None
         self.search = None
+    
+    def get_current_post(self): return self.post_display.current_post
+    def get_current_id(self): return self.get_current_post()['id']
+    # This function is kind of an antipattern, cuz I don't know how to name it.
+    # It looks for the matching data structure, and if it doesn't exist,
+    # initializes it to return later. It's very stateful, I didn't plan for it,
+    # and I don't know if I should replace it or what.
+    def load_current_change_dict(self):
+        id_ = self.get_current_id()
+        if not id_ in self.changes:
+            self.changes[id_] = {}
+        return self.changes[id_]
+    
+    def add_tag(self, tag): self.load_current_change_dict()[tag] = True
+    def remove_tag(self, tag): self.load_current_change_dict()[tag] = False
+    def toggle_tag(self, tag):
+        changes = self.load_current_change_dict()
+        if tag in changes:
+            changes[tag] = not changes[tag]
+        else:
+            changes[tag] = not post_has_tag(self.get_current_post(), tag)
+            
     def set_project(self, project_name):
+        self.changes = {}
         project = resource_manager.set_project(project_name)
         self.project = project
         if hasattr(project, 'search'):
@@ -96,9 +130,13 @@ def run():
     root = tkinter.Tk()
     editor = PostEditor(root)
     print('Project options:', '\n'.join(resource_manager.projects.keys()))
-    project_name = input('Name of project? ')
+    project_name = 'test_sample_3'#input('Name of project? ')
     print()
     editor.set_project(project_name)
+    root.mainloop()
+    print('Control flow is restored to me.')
+    root = tkinter.Tk()
+    root.title('Hi there!')
     root.mainloop()
     
 if __name__ == '__main__':
