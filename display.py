@@ -55,7 +55,7 @@ def tags_of_post(post):
 def post_has_tag(post, tag): return tag in tags_of_post(post)
 
 class PostEditor:
-    def __init__(self, master):
+    def __init__(self, master, project_name):
         self.post_display = PostDisplay(master)
         self.master = master
         self.master.bind('<KeyPress>', self.do_keypress)
@@ -65,18 +65,19 @@ class PostEditor:
         self.project = None
         self.current_index = None
         self.search = None
+        self.set_project(project_name)
     
     def get_current_post(self): return self.post_display.current_post
-    def get_current_id(self): return self.get_current_post()['id']
     # This function is kind of an antipattern, cuz I don't know how to name it.
     # It looks for the matching data structure, and if it doesn't exist,
     # initializes it to return later. It's very stateful, I didn't plan for it,
     # and I don't know if I should replace it or what.
     def load_current_change_dict(self):
-        id_ = self.get_current_id()
+        p = self.get_current_post() 
+        id_ = p['id']
         if not id_ in self.changes:
-            self.changes[id_] = {}
-        return self.changes[id_]
+            self.changes[id_] = {'post':p, 'changes':{}}
+        return self.changes[id_]['changes']
     
     def add_tag(self, tag): self.load_current_change_dict()[tag] = True
     def remove_tag(self, tag): self.load_current_change_dict()[tag] = False
@@ -127,12 +128,11 @@ class PostEditor:
             self.project.on_key(self, key_event)
 
 def run():
-    root = tkinter.Tk()
-    editor = PostEditor(root)
     print('Project options:', '\n'.join(resource_manager.projects.keys()))
     project_name = 'test_sample_3'#input('Name of project? ')
     print()
-    editor.set_project(project_name)
+    root = tkinter.Tk()
+    editor = PostEditor(root, project_name)
     root.mainloop()
     print('Control flow is restored to me.')
     root = tkinter.Tk()
