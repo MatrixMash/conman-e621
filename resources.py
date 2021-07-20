@@ -49,7 +49,19 @@ class ResourceManager: # Singleton, get instance via resources.resource_manager
         headers = {**HEADERS_BASE, **headers}
         result = self.session.get(url, headers=headers, params=params, **kwargs)
         if result.status_code == 401:
-            print('Authentication failure on url', url)
+            print('Authentication failure on GET url', url)
+            print('  Is your username really {}?'.format(self.session.auth[0]))
+            print('  Are your username and API key assigned to auth in the project?')
+            print('  Did you regenerate your API key recently?')
+        return result
+    
+    def patch_url(self, url, data=None, headers={}, params={}, **kwargs):
+        #time.sleep(1) # Rate limiting lol
+        params = {**PARAMETERS_BASE, **params}
+        headers = {**HEADERS_BASE, **headers}
+        result = self.session.patch(url, data=data, headers=headers, **kwargs)
+        if result.status_code == 401:
+            print('Authentication failure on PATCH url', url)
             print('  Is your username really {}?'.format(self.session.auth[0]))
             print('  Are your username and API key assigned to auth in the project?')
             print('  Did you regenerate your API key recently?')
@@ -88,6 +100,18 @@ class ResourceManager: # Singleton, get instance via resources.resource_manager
         return IndexedSearch(search_string, limit)
     def get_search(self, search_string, limit=None):
         return LazySearch(search_string, limit)
+    def do_patch(self, p):
+        diff = changes_to_string_diff(p['changes'])
+        id_ = p['post']['id']
+        print('performing patch', repr(diff), 'on post', id_)
+        return self.patch_url(URL_BASE + 'posts/{}.json'.format(id_), json=diff)
+        
+    def add_patches(self, patch_list):
+        for p in patch_list:
+            self.do_patch(p)
+
+def changes_to_string_diff(changes):
+    return ' '.join(('' if do_add else '-') + tag for tag, do_add in changes.items())
 
 resource_manager = ResourceManager()
 

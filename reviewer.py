@@ -2,6 +2,7 @@ import itertools
 import tkinter
 
 from display import PostDisplay, PostEditor
+from resources import resource_manager
 
 CONTROL = 0b100
 
@@ -72,9 +73,11 @@ def run():
     #editor = PostEditor(root, 'test_sample_3')
     #root.mainloop()
     #changes = editor.changes
-    root = tkinter.Tk()
-    reviewer = EditReviewer(root, changes)
-    root.mainloop()
+    #root = tkinter.Tk()
+    #reviewer = EditReviewer(root, changes)
+    #root.mainloop()
+    post_and_changes = list(changes.values())[0]
+    resource_manager.do_patch(post_and_changes)
     
 if __name__ == '__main__':
     run()
