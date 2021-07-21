@@ -76,8 +76,19 @@ def run():
     #root = tkinter.Tk()
     #reviewer = EditReviewer(root, changes)
     #root.mainloop()
-    post_and_changes = list(changes.values())[0]
-    resource_manager.do_patch(post_and_changes)
+    #from projects import test_sample_3
+    resource_manager.set_project('test_sample_3')       # Need auth to do post changes, baka
+    post_and_changes = list(changes.values())[3]
+    
+    #print(post_and_changes['changes'])
+    #post_and_changes['changes']['duo'] = False
+    #post_and_changes['changes']['solo'] = True
+    #post_and_changes['changes']['group'] = False
+    #import sys
+    #sys.exit()
+    p = resource_manager.do_patch(post_and_changes)
+    print(p)
+    print(p.content)
     
 if __name__ == '__main__':
     run()
