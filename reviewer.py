@@ -1,7 +1,7 @@
 import itertools
 import tkinter
 
-from display import PostDisplay, PostEditor
+from display import PostDisplay
 from resources import resource_manager
 
 CONTROL = 0b100
@@ -31,7 +31,6 @@ class EditReviewer:
                 raise IndexError
             post_changes = self.changes[index]
             self.set_post(post_changes['post'])
-            print('Consider changes:', post_changes['changes'])
             self.current_index = index
         except IndexError:
             if index < 0:
@@ -39,7 +38,6 @@ class EditReviewer:
             else:
                 self.current_index = len(self.changes)
             self.set_post(None)
-        print(self.current_index)
         
     def set_post(self, post): self.post_display.set_post(post)
     def do_keypress(self, key_event):
@@ -69,16 +67,24 @@ import reviewer_test
 changes = reviewer_test.changes
 
 def run():
-    #root = tkinter.Tk()
-    #editor = PostEditor(root, 'test_sample_3')
-    #root.mainloop()
-    #changes = editor.changes
-    #root = tkinter.Tk()
-    #reviewer = EditReviewer(root, changes)
-    #root.mainloop()
+    from editor import PostEditor
+    root = tkinter.Tk()
+    editor = PostEditor(root, 'test_sample_3')
+    root.mainloop()
+    changes = editor.changes
+    root = tkinter.Tk()
+    reviewer = EditReviewer(root, changes)
+    root.mainloop()
+    
+    edits = reviewer.changes
+    for post_and_changes in edits:
+        id_ = post_and_changes['post']['id']
+        c = post_and_changes['changes']
+        print('{}: {}'.format(id_, c))
+    
     #from projects import test_sample_3
-    resource_manager.set_project('test_sample_3')       # Need auth to do post changes, baka
-    post_and_changes = list(changes.values())[3]
+    #resource_manager.set_project('test_sample_3')       # Need auth to do post changes, baka
+    #post_and_changes = list(changes.values())[3]
     
     #print(post_and_changes['changes'])
     #post_and_changes['changes']['duo'] = False
@@ -86,9 +92,9 @@ def run():
     #post_and_changes['changes']['group'] = False
     #import sys
     #sys.exit()
-    p = resource_manager.do_patch(post_and_changes)
-    print(p)
-    print(p.content)
+    #p = resource_manager.do_patch(post_and_changes)
+    #print(p)
+    #print(p.content)
     
 if __name__ == '__main__':
     run()
