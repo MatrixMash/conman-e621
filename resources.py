@@ -107,7 +107,7 @@ class ResourceManager: # Singleton, get instance via resources.resource_manager
         print('view', post_and_changes['post']['file']['url'])
         return self.patch_url(URL_BASE + 'posts/{}.json'.format(id_), json={'post':{'tag_string_diff':diff}})
         
-    def add_patches(self, patch_list):
+    def queue_patches(self, patch_list):
         for p in patch_list:
             self.do_patch(p)
 

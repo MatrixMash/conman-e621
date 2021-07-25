@@ -9,7 +9,6 @@ class PostDisplay(tkinter.Frame):
     def __init__(self, master, default_text='Nobody here but us chickens.'):
         super().__init__(master)
         self.master = master
-        master.title('conman: an e621 tag editor')
         self.pack()
         self.default_text = default_text
         self.create_widgets()
@@ -46,16 +45,6 @@ class PostDisplay(tkinter.Frame):
         self.main_label.pack()
 
 def run():
-#    print('Project options:', '\n'.join(resource_manager.projects.keys()))
-#    project_name = 'test_sample_3'#input('Name of project? ')
-#    print()
-#    root = tkinter.Tk()
-#    editor = PostEditor(root, project_name)
-#    root.mainloop()
-#    print('Control flow is restored to me.')
-#    root = tkinter.Tk()
-#    root.title('Hi there!')
-#    root.mainloop()
     print('Demo for PostDisplay not implemented.')
     
 if __name__ == '__main__':

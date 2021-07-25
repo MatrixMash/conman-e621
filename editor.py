@@ -1,7 +1,10 @@
 import itertools
+import tkinter # have to make PostEditor a Frame so it can catch keypress events
 
 from resources import resource_manager
 from display import PostDisplay
+# To avoid circular dependency, I import EditReviewer in the "go_to_review" function.
+#from reviewer import EditReviewer
 
 def tag_lists(post):
     tag_list_names = ["general", "species", "character", "copyright", "artist", "invalid", "lore", "meta"]
@@ -11,11 +14,13 @@ def tags_of_post(post):
     return itertools.chain(tag_lists(post))
 def post_has_tag(post, tag): return tag in tags_of_post(post)
 
-class PostEditor:
+class PostEditor(tkinter.Frame):
     def __init__(self, master, project_name):
-        self.post_display = PostDisplay(master)
+        super().__init__(master)
+        master.title('conman: an e621 tag editor')
+        self.post_display = PostDisplay(self)
         self.master = master
-        self.master.bind('<KeyPress>', self.do_keypress)
+        self.bind('<KeyPress>', self.do_keypress)
         
         self.changes = None
         
@@ -23,7 +28,11 @@ class PostEditor:
         self.current_index = None
         self.search = None
         self.set_project(project_name)
+        
+        self.pack()
+        self.focus_set()    # Request keypress events
     
+    def title(self, text): self.master.title(text)
     def get_current_post(self): return self.post_display.current_post
     
     # This function is kind of an antipattern, cuz I don't know how to name it.
@@ -61,6 +70,10 @@ class PostEditor:
         self.go_to(0)
     
     def quit(self): self.master.destroy()
+    def go_to_review(self):
+        self.destroy()
+        from reviewer import EditReviewer   # Import now to avoid circular dependency
+        reviewer = EditReviewer(self.master, self.changes)
     
     def next(self, offset=1): self.go_to(self.current_index + offset)
     def previous(self, offset=1): self.go_to(self.current_index - offset)
@@ -87,15 +100,12 @@ class PostEditor:
 
 def run():
     import tkinter
-    print('Project options:', '\n'.join(resource_manager.projects.keys()))
-    project_name = 'test_sample_3'#input('Name of project? ')
-    print()
+    #print('Project options:', '\n'.join(resource_manager.projects.keys()))
+    #project_name = input('Name of project? ')
+    #print()
+    project_name = 'test_sample_3'
     root = tkinter.Tk()
     editor = PostEditor(root, project_name)
-    root.mainloop()
-    print('Control flow is restored to me.')
-    root = tkinter.Tk()
-    root.title('Hi there!')
     root.mainloop()
     
 if __name__ == '__main__':
