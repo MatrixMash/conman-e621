@@ -17,7 +17,7 @@ class PostDisplay(tkinter.Frame):
         self.max_size = (2000, 1000)
         self.view = 'file_shrink'
     
-    def set_post(self, post):
+    def set_image(self, post):
         if post is None:
             self.main_label['image'] = ''
             return
@@ -39,10 +39,31 @@ class PostDisplay(tkinter.Frame):
         self.main_label['image'] = photo_image
         self.main_label.image = photo_image # So tk doesn't forget the image on us
         self.main_label.pack()
+    
+    def set_tags(self, post):
+        tag_order = (
+            ('invalid', 'Invalid'),
+            ('artist', 'Artists'),
+            ('copyright', 'Copyrights'),
+            ('character', 'Characters'),
+            ('species', 'Species'),
+            ('general', 'General'),
+            ('meta', 'Meta'),
+            ('lore', 'Lore'),
+        )
+        
+    
+    def set_post(self, post):
+        self.set_image(post)
+        self.set_tags(post)
+        
     def set_default_text(self, t): self.main_label['text'] = t
     def create_widgets(self):
         self.main_label = tkinter.Label(self, text=self.default_text)
-        self.main_label.pack()
+        self.main_label.pack(side='right')
+        self.text_bar = tkinter.Text(self)
+        self.text_bar.insert(tkinter.INSERT, 'asdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\n')
+        self.text_bar.pack(side='right')
 
 def run():
     print('Demo for PostDisplay not implemented.')
