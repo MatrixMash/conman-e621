@@ -82,7 +82,8 @@ class PostDisplay(tkinter.Frame):
         
         if post is not None:
             changes = post.get('changes', {})
-            for t in self.focus_tags:
+            unique_tags = {*self.focus_tags, *changes.keys()}
+            for t in unique_tags:
                 if t in changes:
                     prepend = '+' if changes[t] else '-'
                     text_tag = 'present' if changes[t] else 'absent'
@@ -90,10 +91,8 @@ class PostDisplay(tkinter.Frame):
                     prepend = '  '
                     text_tag = 'present' if post_has_tag(post, t) else 'absent'
                 t = prepend + t + '\n'
-                start = self.focus_tags_text.index('insert')
-                self.focus_tags_text.insert('insert', t)
-                end = self.focus_tags_text.index('insert')
-                self.focus_tags_text.tag_add(text_tag, start, end)
+                self.focus_tags_text.insert('insert', t, text_tag)
+                    
         self.focus_tags_text['state'] = 'disable'
     
     def set_project(self, project):
