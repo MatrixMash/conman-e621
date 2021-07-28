@@ -12,7 +12,6 @@ def tag_lists(post):
 def tags_of_post(post):
     return itertools.chain.from_iterable(tag_lists(post))
 def post_has_tag(post, tag):
-    print('comparing', tag, 'with', list(itertools.chain(tag_lists(post))))
     return tag in tags_of_post(post)
 
 class PostDisplay(tkinter.Frame):
@@ -81,8 +80,8 @@ class PostDisplay(tkinter.Frame):
         self.focus_tags_text['state'] = 'normal'
         self.focus_tags_text.delete('1.0', 'end')
         if post is not None:
-            print('filling focus tags on', post['tags'])
-            self.focus_tags_text.insert('insert', '\n'.join(['++' + t + '++' if post_has_tag(post, t) else '--' + t + '--' for t in self.focus_tags]))
+            focused_tags = '\n'.join(['++' + t + '++' if post_has_tag(post, t) else '--' + t + '--' for t in self.focus_tags])
+            self.focus_tags_text.insert('insert', focused_tags)
         self.focus_tags_text['state'] = 'disable'
         self.focus_tags_text.pack()
     
