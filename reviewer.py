@@ -11,6 +11,7 @@ class EditReviewer(tkinter.Frame):
         super().__init__(master)
         self.master = master
         self.post_display = PostDisplay(self)
+        self.post_display.set_project(resource_manager.current_project)
         self.bind('<KeyPress>', self.do_keypress)
         master.title('Review your edits: Press delete to delete. Escape when done.')
         
