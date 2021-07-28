@@ -1,9 +1,19 @@
+import itertools
 import tkinter
 
 from io import BytesIO      # Turn in-memory bytes returned by resource_manager into stream expected by PIL
 from PIL import Image, ImageTk, UnidentifiedImageError
 
 from resources import resource_manager
+
+def tag_lists(post):
+    tag_list_names = ["general", "species", "character", "copyright", "artist", "invalid", "lore", "meta"]
+    return [post['tags'][name] for name in tag_list_names] + [post['locked_tags']]
+def tags_of_post(post):
+    return itertools.chain.from_iterable(tag_lists(post))
+def post_has_tag(post, tag):
+    print('comparing', tag, 'with', list(itertools.chain(tag_lists(post))))
+    return tag in tags_of_post(post)
 
 class PostDisplay(tkinter.Frame):
     def __init__(self, master, default_text='Nobody here but us chickens.'):
@@ -12,10 +22,15 @@ class PostDisplay(tkinter.Frame):
         self.pack()
         self.default_text = default_text
         self.create_widgets()
+        
         self.current_post = None
+        self.focus_tags = []
         
         self.max_size = (2000, 1000)
         self.view = 'file_shrink'
+    
+    def set_project(self, project):
+        self.focus_tags = getattr(project, 'focus_tags', [])
     
     def set_image(self, post):
         if post is None:
@@ -62,12 +77,24 @@ class PostDisplay(tkinter.Frame):
                         self.tags_text.insert('end', '   {}\n'.format(tag))
         self.tags_text['state'] = 'disable'
     
+    def set_current_focus_tags(self, post):
+        self.focus_tags_text['state'] = 'normal'
+        self.focus_tags_text.delete('1.0', 'end')
+        if post is not None:
+            print('filling focus tags on', post['tags'])
+            self.focus_tags_text.insert('insert', '\n'.join(['++' + t + '++' if post_has_tag(post, t) else '--' + t + '--' for t in self.focus_tags]))
+        self.focus_tags_text['state'] = 'disable'
+        self.focus_tags_text.pack()
+    
     def set_post(self, post):
         self.set_image(post)
         self.set_tags(post)
-        
+        self.set_current_focus_tags(post)
+    
     def set_default_text(self, t): self.main_label['text'] = t
     def create_widgets(self):
+        self.focus_tags_text = tkinter.Text(self, width=30, state='disable')
+        self.focus_tags_text.pack(side='right')
         self.main_label = tkinter.Label(self, text=self.default_text)
         self.main_label.pack(side='right')
         self.tags_text = tkinter.Text(self, width=30, state='disable')

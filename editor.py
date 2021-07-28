@@ -65,6 +65,7 @@ class PostEditor(tkinter.Frame):
             print('This project has no search field???')
         if hasattr(project, 'default_text'):
             self.post_display.set_default_text(project.default_text)
+        self.post_display.set_project(project)
     def set_search(self, search_string):
         self.search = resource_manager.get_indexed_search(search_string)
         self.go_to(0)
