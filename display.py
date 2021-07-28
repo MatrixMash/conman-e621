@@ -80,10 +80,14 @@ class PostDisplay(tkinter.Frame):
         self.focus_tags_text['state'] = 'normal'
         self.focus_tags_text.delete('1.0', 'end')
         if post is not None:
-            focused_tags = '\n'.join(['++' + t + '++' if post_has_tag(post, t) else '--' + t + '--' for t in self.focus_tags])
-            self.focus_tags_text.insert('insert', focused_tags)
+            for t in self.focus_tags:
+                text_tag = 'present' if post_has_tag(post, t) else 'absent'
+                t = t + '\n'
+                start = self.focus_tags_text.index('insert')
+                self.focus_tags_text.insert('insert', t)
+                end = self.focus_tags_text.index('insert')
+                self.focus_tags_text.tag_add(text_tag, start, end)
         self.focus_tags_text['state'] = 'disable'
-        self.focus_tags_text.pack()
     
     def set_post(self, post):
         self.set_image(post)
@@ -94,6 +98,9 @@ class PostDisplay(tkinter.Frame):
     def create_widgets(self):
         self.focus_tags_text = tkinter.Text(self, width=30, state='disable', font='DejaVu')
         self.focus_tags_text.pack(side='right')
+        self.focus_tags_text.tag_configure('present', background='#ddddff')
+        self.focus_tags_text.tag_configure('absent', foreground='#222222')
+        
         self.main_label = tkinter.Label(self, text=self.default_text)
         self.main_label.pack(side='right')
         self.tags_text = tkinter.Text(self, width=30, state='disable', font='DejaVu')
