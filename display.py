@@ -41,17 +41,26 @@ class PostDisplay(tkinter.Frame):
         self.main_label.pack()
     
     def set_tags(self, post):
-        tag_order = (
-            ('invalid', 'Invalid'),
-            ('artist', 'Artists'),
-            ('copyright', 'Copyrights'),
-            ('character', 'Characters'),
-            ('species', 'Species'),
-            ('general', 'General'),
-            ('meta', 'Meta'),
-            ('lore', 'Lore'),
-        )
-        
+        self.tags_text['state'] = 'normal'
+        self.tags_text.delete('1.0', 'end')
+        if post is not None:
+            keys_and_names = (
+                ('invalid', 'Invalid'),
+                ('artist', 'Artists'),
+                ('copyright', 'Copyrights'),
+                ('character', 'Characters'),
+                ('species', 'Species'),
+                ('general', 'General'),
+                ('meta', 'Meta'),
+                ('lore', 'Lore'),
+            )
+            for key, display_name in keys_and_names:
+                tags = post['tags'][key]
+                if tags:
+                    self.tags_text.insert('end', '{}\n'.format(display_name))
+                    for tag in tags:
+                        self.tags_text.insert('end', '   {}\n'.format(tag))
+        self.tags_text['state'] = 'disable'
     
     def set_post(self, post):
         self.set_image(post)
@@ -61,9 +70,8 @@ class PostDisplay(tkinter.Frame):
     def create_widgets(self):
         self.main_label = tkinter.Label(self, text=self.default_text)
         self.main_label.pack(side='right')
-        self.text_bar = tkinter.Text(self)
-        self.text_bar.insert(tkinter.INSERT, 'asdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\nasdfasdfasdfasdf\n')
-        self.text_bar.pack(side='right')
+        self.tags_text = tkinter.Text(self, width=30, state='disable')
+        self.tags_text.pack(side='right', fill='both')
 
 def run():
     print('Demo for PostDisplay not implemented.')
