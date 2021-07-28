@@ -73,6 +73,7 @@ class ResourceManager: # Singleton, get instance via resources.resource_manager
             self.session.auth = self.current_project.auth
         else:
             print('This project has no auth field???')
+            self.session.auth = None
         return self.current_project
 
     def cache_image(self, post, size='file'):
