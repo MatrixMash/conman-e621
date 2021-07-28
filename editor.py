@@ -11,7 +11,7 @@ def tag_lists(post):
     return [post['tags'][name] for name in tag_list_names] + [post['locked_tags']]
 def is_locked(post, tag): return tag in post['locked_tags']
 def tags_of_post(post):
-    return itertools.chain(tag_lists(post))
+    return itertools.chain.from_iterator(tag_lists(post))
 def post_has_tag(post, tag): return tag in tags_of_post(post)
 
 class PostEditor(tkinter.Frame):
