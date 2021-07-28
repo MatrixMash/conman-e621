@@ -44,18 +44,29 @@ class PostEditor(tkinter.Frame):
             p['changes'] = {}
         return p['changes']
     
+    def post_has(self, tag): return post_has_tag(self.get_current_post(), tag)
     def add_tag(self, tag):
-        self.load_current_change_dict()[tag] = True
+        d = self.load_current_change_dict()
+        if not self.post_has(tag):  # I had to draw a truth table for this. Good luck! ;)
+            d[tag] = True
+        else:
+            if tag in d:
+                del d[tag]
         self.post_display.draw_focus_tags()
     def remove_tag(self, tag):
-        self.load_current_change_dict()[tag] = False
+        d = self.load_current_change_dict()
+        if self.post_has(tag):
+            d[tag] = False
+        else:
+            if tag in d:
+                del d[tag]
         self.post_display.draw_focus_tags()
     def toggle_tag(self, tag):
-        changes = self.load_current_change_dict()
-        if tag in changes:
-            changes[tag] = not changes[tag]
+        d = self.load_current_change_dict()
+        if tag in d:
+            del d[tag]
         else:
-            changes[tag] = not post_has_tag(self.get_current_post(), tag)
+            d[tag] = not self.post_has(tag)
         self.post_display.draw_focus_tags()
             
     def set_project(self, project_name):
