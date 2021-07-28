@@ -28,10 +28,8 @@ class PostDisplay(tkinter.Frame):
         self.max_size = (2000, 1000)
         self.view = 'file_shrink'
     
-    def set_project(self, project):
-        self.focus_tags = getattr(project, 'focus_tags', [])
-    
-    def set_image(self, post):
+    def draw_image(self):
+        post = self.current_post
         if post is None:
             self.main_label['image'] = ''
             return
@@ -54,7 +52,8 @@ class PostDisplay(tkinter.Frame):
         self.main_label.image = photo_image # So tk doesn't forget the image on us
         self.main_label.pack()
     
-    def set_tags(self, post):
+    def draw_tags(self):
+        post = self.current_post
         self.tags_text['state'] = 'normal'
         self.tags_text.delete('1.0', 'end')
         if post is not None:
@@ -76,25 +75,36 @@ class PostDisplay(tkinter.Frame):
                         self.tags_text.insert('end', '   {}\n'.format(tag))
         self.tags_text['state'] = 'disable'
     
-    def set_current_focus_tags(self, post):
+    def draw_focus_tags(self):
+        post = self.current_post
         self.focus_tags_text['state'] = 'normal'
         self.focus_tags_text.delete('1.0', 'end')
+        
         if post is not None:
+            changes = post.get('changes', {})
             for t in self.focus_tags:
-                text_tag = 'present' if post_has_tag(post, t) else 'absent'
-                t = t + '\n'
+                if t in changes:
+                    prepend = '+' if changes[t] else '-'
+                    text_tag = 'present' if changes[t] else 'absent'
+                else:
+                    prepend = '  '
+                    text_tag = 'present' if post_has_tag(post, t) else 'absent'
+                t = prepend + t + '\n'
                 start = self.focus_tags_text.index('insert')
                 self.focus_tags_text.insert('insert', t)
                 end = self.focus_tags_text.index('insert')
                 self.focus_tags_text.tag_add(text_tag, start, end)
         self.focus_tags_text['state'] = 'disable'
     
+    def set_project(self, project):
+        self.focus_tags = getattr(project, 'focus_tags', [])
     def set_post(self, post):
-        self.set_image(post)
-        self.set_tags(post)
-        self.set_current_focus_tags(post)
-    
+        self.current_post = post
+        self.draw_image()
+        self.draw_tags()
+        self.draw_focus_tags()
     def set_default_text(self, t): self.main_label['text'] = t
+    
     def create_widgets(self):
         self.focus_tags_text = tkinter.Text(self, width=30, state='disable', font='DejaVu')
         self.focus_tags_text.pack(side='right')
