@@ -92,11 +92,11 @@ class PostDisplay(tkinter.Frame):
     
     def set_default_text(self, t): self.main_label['text'] = t
     def create_widgets(self):
-        self.focus_tags_text = tkinter.Text(self, width=30, state='disable')
+        self.focus_tags_text = tkinter.Text(self, width=30, state='disable', font='DejaVu')
         self.focus_tags_text.pack(side='right')
         self.main_label = tkinter.Label(self, text=self.default_text)
         self.main_label.pack(side='right')
-        self.tags_text = tkinter.Text(self, width=30, state='disable')
+        self.tags_text = tkinter.Text(self, width=30, state='disable', font='DejaVu')
         self.tags_text.pack(side='right', fill='both')
 
 def run():
