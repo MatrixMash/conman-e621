@@ -100,11 +100,11 @@ class ResourceManager: # Singleton, get instance via resources.resource_manager
         return IndexedSearch(search_string, limit)
     def get_search(self, search_string, limit=None):
         return LazySearch(search_string, limit)
-    def do_patch(self, post_and_changes):
-        diff = changes_to_string_diff(post_and_changes['changes'])
-        id_ = post_and_changes['post']['id']
+    def do_patch(self, post):
+        diff = changes_to_string_diff(post['changes'])
+        id_ = post['id']
         print('performing patch', repr(diff), 'on post', id_)
-        print('view', post_and_changes['post']['file']['url'])
+        print('view', post['file']['url'])
         return self.patch_url(URL_BASE + 'posts/{}.json'.format(id_), json={'post':{'tag_string_diff':diff}})
         
     def queue_patches(self, patch_list):
@@ -127,7 +127,7 @@ class LazySearch:
         self.cache = []
     def load_next(self):
         if len(self.cache) > 0:
-            self.before_id = self.cache['posts'][-1]['id']
+            self.before_id = self.cache[-1]['id']
         params = {'limit':self.cache_limit, 'tags':self.search_string}
         if self.before_id is not None:
             params['page'] = 'b' + str(self.before_id)

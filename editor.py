@@ -22,8 +22,6 @@ class PostEditor(tkinter.Frame):
         self.master = master
         self.bind('<KeyPress>', self.do_keypress)
         
-        self.changes = None
-        
         self.project = None
         self.current_index = None
         self.search = None
@@ -34,17 +32,17 @@ class PostEditor(tkinter.Frame):
     
     def title(self, text): self.master.title(text)
     def get_current_post(self): return self.post_display.current_post
+    def get_posts_with_changes(self): return [p for p in self.search.cache if p.get('changes', False)]
     
     # This function is kind of an antipattern, cuz I don't know how to name it.
     # It looks for the matching data structure, and if it doesn't exist,
     # initializes it to return later. It's very stateful, I didn't plan for it,
     # and I don't know if I should replace it or what.
     def load_current_change_dict(self):
-        p = self.get_current_post() 
-        id_ = p['id']
-        if not id_ in self.changes:
-            self.changes[id_] = {'post':p, 'changes':{}}
-        return self.changes[id_]['changes']
+        p = self.get_current_post()
+        if not 'changes' in p:
+            p['changes'] = {}
+        return p['changes']
     
     def add_tag(self, tag): self.load_current_change_dict()[tag] = True
     def remove_tag(self, tag): self.load_current_change_dict()[tag] = False
@@ -56,7 +54,6 @@ class PostEditor(tkinter.Frame):
             changes[tag] = not post_has_tag(self.get_current_post(), tag)
             
     def set_project(self, project_name):
-        self.changes = {}
         project = resource_manager.set_project(project_name)
         self.post_display.set_project(project)
         self.project = project
@@ -74,7 +71,9 @@ class PostEditor(tkinter.Frame):
     def go_to_review(self):
         self.destroy()
         from reviewer import EditReviewer   # Import now to avoid circular dependency
-        reviewer = EditReviewer(self.master, self.changes)
+        for p in self.get_posts_with_changes():
+            print(p['id'], p['changes'])
+        reviewer = EditReviewer(self.master, self.get_posts_with_changes())
     
     def next(self, offset=1): self.go_to(self.current_index + offset)
     def previous(self, offset=1): self.go_to(self.current_index - offset)

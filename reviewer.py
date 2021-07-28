@@ -7,14 +7,14 @@ from resources import resource_manager
 CONTROL = 0b100
 
 class EditReviewer(tkinter.Frame):
-    def __init__(self, master, change_dict):
+    def __init__(self, master, posts):
         super().__init__(master)
         self.master = master
         self.post_display = PostDisplay(self)
         self.bind('<KeyPress>', self.do_keypress)
         master.title('Review your edits: Press delete to delete. Escape when done.')
         
-        self.edits = list(change_dict.values())
+        self.posts = posts
         
         self.current_index = 0
         self.go_to(0)
@@ -33,14 +33,13 @@ class EditReviewer(tkinter.Frame):
         try:
             if index < 0:
                 raise IndexError
-            post_changes = self.edits[index]
-            self.set_post(post_changes['post'])
+            self.set_post(self.posts[index])
             self.current_index = index
         except IndexError:
             if index < 0:
                 self.current_index = -1
             else:
-                self.current_index = len(self.edits)
+                self.current_index = len(self.posts)
             self.set_post(None)
         
     def set_post(self, post): self.post_display.set_post(post)
@@ -53,20 +52,20 @@ class EditReviewer(tkinter.Frame):
         elif symbol == 'escape' or (CONTROL & key_event.state and symbol == 'w'):
             self.quit()
         elif symbol == 'delete':
-            if self.current_index >= 0 and self.current_index < len(self.edits):
-                del self.edits[self.current_index]
-                if self.current_index == len(self.edits):     # If we delete the last image, step back.
+            if self.current_index >= 0 and self.current_index < len(self.posts):
+                del self.posts[self.current_index]
+                if self.current_index == len(self.posts):     # If we delete the last image, step back.
                     self.current_index -= 1
                 self.go_to(self.current_index)
         elif symbol == 'return':
-            resource_manager.queue_patches(self.edits)
+            resource_manager.queue_patches(self.posts)
             self.master.destroy()
         elif symbol == 'space':
             self.toggle_tag('set:conman_test')
         elif symbol == 'p':
-            for post_and_changes in self.edits:
-                id_ = post_and_changes['post']['id']
-                c = post_and_changes['changes']
+            for post in self.posts:
+                id_ = post['id']
+                c = post['changes']
                 print('{}: {}'.format(id_, c))
     #    else:
     #        print(symbol)
